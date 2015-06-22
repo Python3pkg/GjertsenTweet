@@ -29,4 +29,4 @@ def find_break_point(string, screen_width):
             return last_space+1
         if string[i] == ' ':
             last_space = i
-    return 93
+    return screen_width-6
