@@ -17,12 +17,11 @@
 
 from threading import Thread
 
-from npyscreen import ActionForm, SplitForm, TitleText, Pager, NPSAppManaged,\
-                      notify_confirm, notify_yes_no
+from npyscreen import (ActionForm, SplitForm, TitleText, Pager, NPSAppManaged,
+                       notify_confirm, notify_yes_no)
 
-import tweet
 from utils import find_break_point
-
+import tweet
 
 __author__ = 'Fredrik Gjertsen'
 
@@ -43,7 +42,6 @@ class GTweet(ActionForm, SplitForm):
         self.populate()
         # Since npyscreen is poorly documented, this is how
         # we do it, just fire up a new thread
-
         self.thread = Thread(target=self.stream)
         self.thread.daemon = True
         self.thread.start()
@@ -64,7 +62,7 @@ class GTweet(ActionForm, SplitForm):
             if yes:
                 self.post_tweet(post)
         elif len(query) > 0:
-            self.mysearch(query)
+            self.search(query)
         
         self.tweet.value = ''
         self.search.value = ''
@@ -145,7 +143,7 @@ class GTweet(ActionForm, SplitForm):
         for data in tweets:
             self.feed.values = self.update_feed(data)
 
-    def mysearch(self, query):
+    def search(self, query):
         """Searches for tweets and adds them to the feed
            :param query: what you are searching for."""
         twittr = tweet.Twitter(auth=tweet.authenicate())
