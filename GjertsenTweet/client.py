@@ -16,7 +16,6 @@
 
 
 from threading import Thread
-import os
 
 from npyscreen import ActionForm, SplitForm, TitleText, Pager, NPSAppManaged,\
                       notify_confirm, notify_yes_no
@@ -44,7 +43,10 @@ class GTweet(ActionForm, SplitForm):
         self.populate()
         # Since npyscreen is poorly documented, this is how
         # we do it, just fire up a new thread
-        Thread(target=self.stream).start()
+
+        self.thread = Thread(target=self.stream)
+        self.thread.daemon = True
+        self.thread.start()
 
     def on_ok(self):
         """Checks wether you have a tweet to post
@@ -71,11 +73,8 @@ class GTweet(ActionForm, SplitForm):
         """Askes the user if he/she really wants to quit when the cancel 
         button is pressed. Terminates if yes, else continue."""
         yes = notify_yes_no('Are you sure you wanna quit?', title='Quit')
-        # This is really ugly, but since the
-        # twitter stream won't shut down this
-        # was the quickest/dirtiest solution
         if yes:
-            os.popen('killall python')
+            exit()
 
     def post_tweet(self, post):
         """Posts a tweet.
@@ -139,9 +138,9 @@ class GTweet(ActionForm, SplitForm):
            Note, if you for some reason exits with ctrl-c, the
            twitterstream will still be running. So use the cancel button 
            to exit."""
-        twittr = tweet.TwitterStream(auth=tweet.authenicate(), 
-                                     domain='userstream.twitter.com')
-        tweets = twittr.user()
+        twittr_stream = tweet.TwitterStream(auth=tweet.authenicate(), 
+                                            domain='userstream.twitter.com')       
+        tweets = twittr_stream.user()
 
         for data in tweets:
             self.feed.values = self.update_feed(data)
@@ -151,7 +150,7 @@ class GTweet(ActionForm, SplitForm):
            :param query: what you are searching for."""
         twittr = tweet.Twitter(auth=tweet.authenicate())
         tweets = twittr.search.tweets(q=query)
-        tweets = tweets['statuses']
+        tweets = reversed(tweets['statuses'])
         for data in tweets:
             self.feed.vaules = self.update_feed(data)            
 
