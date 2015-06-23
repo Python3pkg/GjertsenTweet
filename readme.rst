@@ -4,6 +4,8 @@ GjertsenTweet
 GjertsenTweet is a simple twitter client built with npyscreen. It lets you
 access twitter from your terminal so you can post, read and search for tweets.
 
+.. image:: http://i.imgur.com/0yE7pFX.png
+
 Installation
 ------------
 
