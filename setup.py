@@ -38,7 +38,7 @@ already done it
 from setuptools import setup
 
 setup(name='GjertsenTweet',
-      version='0.4.0',
+      version='0.4.1',
       description='A simple twitter client for the terminal',
       long_description = __doc__,
       author='Fredrik Gjertsen',
@@ -55,10 +55,19 @@ setup(name='GjertsenTweet',
           },
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',
+                   'Environment :: Console :: Curses',
                    'Intended Audience :: End Users/Desktop',
                    'Natural Language :: English',
+                   'Programming Language :: Python :: 2',
                    'Programming Language :: Python :: 2.7',
-                   'Topic :: Utilities'],
+                   'Programming Language :: Python :: 2 :: Only',
+                   'Programming Language :: Python :: Implementation :: CPython',
+                   'Topic :: Communications',
+                   'Topic :: Internet',
+                   'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+                   'Topic :: Utilities',
+                   'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+                   ],
       keywords='twitter, command-line tools')
 
 
