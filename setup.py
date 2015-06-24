@@ -38,7 +38,7 @@ already done it
 from setuptools import setup
 
 setup(name='GjertsenTweet',
-      version='0.3.7',
+      version='0.4.0',
       description='A simple twitter client for the terminal',
       long_description = __doc__,
       author='Fredrik Gjertsen',
