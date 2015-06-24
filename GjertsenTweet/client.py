@@ -40,7 +40,11 @@ class TweetForm(ActionForm, SplitForm):
     
     TWEET_BUTTON_BR_OFFSET = (2,6)
     TWEET_BUTTON_TEXT = 'Tweet'
-    
+
+    BUTTONS_TEXT = [QUIT_BUTTON_TEXT, SEARCH_BUTTON_TEXT, TWEET_BUTTON_TEXT]
+    BUTTONS_OFFSET = [QUIT_BUTTON_BR_OFFSET, SEARCH_BUTTON_BR_OFFSET, TWEET_BUTTON_BR_OFFSET]
+    BUTTONS_DATA = zip(BUTTONS_TEXT, BUTTONS_OFFSET)
+
     def create(self):
         """initiliazes the form, adds the widgets and fires up the feed."""
         self.tweet = self.add(TitleText, name="What's happening?", 
@@ -118,7 +122,7 @@ class TweetForm(ActionForm, SplitForm):
         self.editing = False
         self._delete_buttons()
         return edit_return_value
-    
+     
     def _add_buttons(self):
         quit_button_text = self.QUIT_BUTTON_TEXT
         cmy, cmx = self.curses_pad.getmaxyx()
@@ -146,6 +150,8 @@ class TweetForm(ActionForm, SplitForm):
                                             rely=my, relx=mx, use_max_space=True)
         self.tweet_button_pos = len(self._widgets__)-1
         self.tweet_button.update()
+
+        self._added_buttons = [self.quit_button, self.search_button, self.tweet_button]
       
     def _delete_buttons(self):
         self.quit_button.destroy()
@@ -197,8 +203,8 @@ class TweetForm(ActionForm, SplitForm):
             for i, text in enumerate(twit):
                 self.feed.values.insert(i,text)
 
-        if len(self.feed.values) >= 100:
-            feed = feed[0:100]
+        if len(self.feed.values) >= 1000:
+            feed = feed[0:1000]
         
         return feed
 
@@ -206,7 +212,7 @@ class TweetForm(ActionForm, SplitForm):
         """Populates the the feed with the last 20 tweets from
            your feed when the client starts."""
         twittr = tweet.Twitter(auth=tweet.authenicate())
-        tweets = reversed(twittr.statuses.home_timeline(count=20))
+        tweets = reversed(twittr.statuses.home_timeline(count=50))
 
         for data in tweets:
             self.feed.values = self.update_feed(data)
@@ -235,23 +241,14 @@ class TweetForm(ActionForm, SplitForm):
     # made some changes so it moves all 3 buttons
     def move_buttons(self):
         if hasattr(self, 'quit_button'):
-            cmy, cmx = self.curses_pad.getmaxyx()
-            cmy -= self.QUIT_BUTTON_BR_OFFSET[0]
-            cmx -= len(self.QUIT_BUTTON_TEXT)+self.QUIT_BUTTON_BR_OFFSET[1]
-            self.quit_button.rely = cmy
-            self.quit_button.relx = cmx 
-            
-            cmy, cmx = self.curses_pad.getmaxyx()
-            cmy -= self.SEARCH_BUTTON_BR_OFFSET[0]
-            cmx -= len(self.SEARCH_BUTTON_TEXT)+self.SEARCH_BUTTON_BR_OFFSET[1]
-            self.search_button.rely = cmy
-            self.search_button.relx = cmx             
-            
-            cmy, cmx = self.curses_pad.getmaxyx()   
-            cmy -= self.TWEET_BUTTON_BR_OFFSET[0]
-            cmx -= len(self.TWEET_BUTTON_TEXT)+self.TWEET_BUTTON_BR_OFFSET[1]
-            self.tweet_button.rely = cmy
-            self.tweet_button.relx = cmx 
+            for button, data in zip(self._added_buttons, self.BUTTONS_DATA):
+                text = data[0]
+                offset = data[1]
+                cmy, cmx = self.curses_pad.getmaxyx()
+                cmy -= offset[0]
+                cmx -= len(text) + offset[1]
+                button.rely = cmy
+                button.relx = cmx
 
 
 class TwitterClient(NPSAppManaged):

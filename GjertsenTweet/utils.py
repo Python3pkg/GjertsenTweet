@@ -28,7 +28,6 @@ months = {month: i+1 for i, month in enumerate(month_names)}
 
 def strip_leading_zero(month):
     if month.startswith('0'):
-        print(month)
         return int(month[1:])
     return int(month)
 
