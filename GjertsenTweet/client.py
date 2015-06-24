@@ -58,9 +58,9 @@ class TweetForm(ActionForm, SplitForm):
         ActionForm.move_ok_button = self.move_buttons
         
         self.populate()
-        self.thread = Thread(target=self.stream)
-        self.thread.daemon = True
-        self.thread.start()
+        thread = Thread(target=self.stream)
+        thread.daemon = True
+        thread.start()
     
     
     # Had to override edit from ActionForm in order to add more buttons.
@@ -201,7 +201,7 @@ class TweetForm(ActionForm, SplitForm):
         feed = self.feed.values
         if twit != None:
             for i, text in enumerate(twit):
-                self.feed.values.insert(i,text)
+                feed.insert(i,text)
 
         if len(self.feed.values) >= 1000:
             feed = feed[0:1000]
