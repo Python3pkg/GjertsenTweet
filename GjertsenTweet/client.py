@@ -124,7 +124,8 @@ class TweetForm(ActionForm, SplitForm):
         cmy, cmx = self.curses_pad.getmaxyx()
         cmy -= self.QUIT_BUTTON_BR_OFFSET[0]
         cmx -= len(quit_button_text)+self.QUIT_BUTTON_BR_OFFSET[1]
-        self.quit_button = self.add_widget(self.OKBUTTON_TYPE, name=quit_button_text, rely=cmy, relx=cmx, use_max_space=True)
+        self.quit_button = self.add_widget(self.OKBUTTON_TYPE, name=quit_button_text, 
+                                           rely=cmy, relx=cmx, use_max_space=True)
         self.quit_button_pos = len(self._widgets__)-1
         self.quit_button.update()
 
@@ -132,7 +133,8 @@ class TweetForm(ActionForm, SplitForm):
         cmy, cmx = self.curses_pad.getmaxyx()
         cmy -= self.SEARCH_BUTTON_BR_OFFSET[0]
         cmx -= len(search_button_text)+self.SEARCH_BUTTON_BR_OFFSET[1]
-        self.search_button = self.add_widget(self.OKBUTTON_TYPE, name=search_button_text, rely=cmy, relx=cmx, use_max_space=True)
+        self.search_button = self.add_widget(self.OKBUTTON_TYPE, name=search_button_text, 
+                                             rely=cmy, relx=cmx, use_max_space=True)
         self.search_button_pos = len(self._widgets__)-1
         self.search_button.update()        
         
@@ -140,7 +142,8 @@ class TweetForm(ActionForm, SplitForm):
         my, mx = self.curses_pad.getmaxyx()
         my -= self.TWEET_BUTTON_BR_OFFSET[0]
         mx -= len(tweet_button_text)+self.TWEET_BUTTON_BR_OFFSET[1]
-        self.tweet_button = self.add_widget(self.OKBUTTON_TYPE, name=tweet_button_text, rely=my, relx=mx, use_max_space=True)
+        self.tweet_button = self.add_widget(self.OKBUTTON_TYPE, name=tweet_button_text, 
+                                            rely=my, relx=mx, use_max_space=True)
         self.tweet_button_pos = len(self._widgets__)-1
         self.tweet_button.update()
       
@@ -162,11 +165,9 @@ class TweetForm(ActionForm, SplitForm):
         elif len(post) > 140:
             notify_confirm('Your tweet is too long!', title='Error')
         else:
-            yes = notify_yes_no('Are you sure you want to post:\n' + post, 
-                                title='Post')
+            yes = notify_yes_no('Are you sure you want to post:\n' + post, title='Post')
             if yes:
                 self.post_tweet(post)
-
         self.tweet.value = ''
 
     def on_search(self):
