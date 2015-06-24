@@ -53,8 +53,9 @@ class TweetForm(ActionForm, SplitForm):
         self.draw_line_at = 5
         self.nextrely += 4
         self.feed = self.add(Pager, ascii=False)
-        # Since we don't have any ok botton we just do this
-        # there's no need to call the function in this class move_ok_button
+        
+        # Since we don't have any ok botton we just do this, we want to
+        # move all buttons at once
         ActionForm.move_ok_button = self.move_buttons
         
         self.populate()
@@ -261,7 +262,7 @@ class TwitterClient(NPSAppManaged):
 
 
 def main():
-    #tweet.authenicate()
+    tweet.authenicate()
     TwitterClient().run()
 
 
