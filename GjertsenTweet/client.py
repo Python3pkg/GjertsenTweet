@@ -16,105 +16,185 @@
 
 
 from threading import Thread
+import weakref
 
 from npyscreen import (ActionForm, SplitForm, TitleText, Pager, NPSAppManaged,
-                       notify_confirm, notify_yes_no)
+                       notify_confirm, notify_yes_no, ButtonPress)
 
-from utils import find_break_point
+from utils import find_break_point, format_tweet, parse_tweet
 import tweet
 
 __author__ = 'Fredrik Gjertsen'
 
 
-class GTweet(ActionForm, SplitForm):
+class TweetForm(ActionForm, SplitForm):
     """This is the form that contains the feed, 
        including the fields to write a tweet
-       or search."""
+       and search."""
+
+    QUIT_BUTTON_BR_OFFSET = (2, 21)
+    QUIT_BUTTON_TEXT = 'Quit'
+
+    SEARCH_BUTTON_BR_OFFSET = (2,13)
+    SEARCH_BUTTON_TEXT = 'Search'
+    
+    TWEET_BUTTON_BR_OFFSET = (2,6)
+    TWEET_BUTTON_TEXT = 'Tweet'
     
     def create(self):
-        """initiliazed the form, adds the widgets and fires up the feed."""
+        """initiliazes the form, adds the widgets and fires up the feed."""
         self.tweet = self.add(TitleText, name="What's happening?", 
                               use_two_lines=False, begin_entry_at=18)
         self.search = self.add(TitleText, name="Search", begin_entry_at=18)
         self.draw_line_at = 5
         self.nextrely += 4
-        self.feed = self.add(Pager, name='Feed', ascii=False)
+        self.feed = self.add(Pager, ascii=False)
+        # Since we don't have any ok botton we just do this
+        # there's no need to call the function in this class move_ok_button
+        ActionForm.move_ok_button = self.move_buttons
+        
         self.populate()
-        # Since npyscreen is poorly documented, this is how
-        # we do it, just fire up a new thread
         self.thread = Thread(target=self.stream)
         self.thread.daemon = True
         self.thread.start()
+    
+    
+    # Had to override edit from ActionForm in order to add more buttons.
+    # Basically just copied the code from ActionForm, cleaned up the code
+    # a bit, added one more button and changed the name and positioning of 
+    # the other buttons
+    def edit(self):
+        self._add_buttons()
+        tmp_rely, tmp_relx = self.nextrely, self.nextrelx
+       
+        self.editing=True
+        if self.editw < 0: self.editw=0
+        if self.editw > len(self._widgets__)-1:
+            self.editw = len(self._widgets__)-1
+        if not self.preserve_selected_widget:
+            self.editw = 0
+    
+        if not self._widgets__[self.editw].editable: 
+            self.find_next_editable()
+        
+        self.display()
 
-    def on_ok(self):
-        """Checks wether you have a tweet to post
-           or a query to search for. Notifies the uses
-           if the tweet is too long, or if the user
-           has something to post."""
+        while not self._widgets__[self.editw].editable:
+            self.editw += 1
+            if self.editw > len(self._widgets__)-2: 
+                self.editing = False
+                return False
+        
+        edit_return_value = None
+        while self.editing:
+            if not self.ALL_SHOWN: self.on_screen()
+            try:
+                self.while_editing(weakref.proxy(self._widgets__[self.editw]))
+            except TypeError:
+                self.while_editing()
+            self._widgets__[self.editw].edit()
+            self._widgets__[self.editw].display()
+            
+            self.handle_exiting_widgets(self._widgets__[self.editw].how_exited)
+            
+            if self.editw > len(self._widgets__)-1: 
+                self.editw = len(self._widgets__)-1
+            
+            if self.tweet_button.value or self.search_button.value or self.quit_button.value:
+                self.editing = False
+        
+            if self.search_button.value:
+                self.search_button.value = False
+                edit_return_value = self.on_search()
+            elif self.tweet_button.value:
+                self.tweet_button.value = False
+                edit_return_value = self.on_tweet()
+            elif self.quit_button.value:
+                self.quit_button.value = False
+                edit_return_value = self.on_quit()
+         
+        self.nextrely, self.nextrelx = tmp_rely, tmp_relx
+        self.display()
+        self.editing = False
+        self._delete_buttons()
+        return edit_return_value
+    
+    def _add_buttons(self):
+        quit_button_text = self.QUIT_BUTTON_TEXT
+        cmy, cmx = self.curses_pad.getmaxyx()
+        cmy -= self.QUIT_BUTTON_BR_OFFSET[0]
+        cmx -= len(quit_button_text)+self.QUIT_BUTTON_BR_OFFSET[1]
+        self.quit_button = self.add_widget(self.OKBUTTON_TYPE, name=quit_button_text, rely=cmy, relx=cmx, use_max_space=True)
+        self.quit_button_pos = len(self._widgets__)-1
+        self.quit_button.update()
+
+        search_button_text = self.SEARCH_BUTTON_TEXT
+        cmy, cmx = self.curses_pad.getmaxyx()
+        cmy -= self.SEARCH_BUTTON_BR_OFFSET[0]
+        cmx -= len(search_button_text)+self.SEARCH_BUTTON_BR_OFFSET[1]
+        self.search_button = self.add_widget(self.OKBUTTON_TYPE, name=search_button_text, rely=cmy, relx=cmx, use_max_space=True)
+        self.search_button_pos = len(self._widgets__)-1
+        self.search_button.update()        
+        
+        tweet_button_text = self.TWEET_BUTTON_TEXT
+        my, mx = self.curses_pad.getmaxyx()
+        my -= self.TWEET_BUTTON_BR_OFFSET[0]
+        mx -= len(tweet_button_text)+self.TWEET_BUTTON_BR_OFFSET[1]
+        self.tweet_button = self.add_widget(self.OKBUTTON_TYPE, name=tweet_button_text, rely=my, relx=mx, use_max_space=True)
+        self.tweet_button_pos = len(self._widgets__)-1
+        self.tweet_button.update()
+      
+    def _delete_buttons(self):
+        self.quit_button.destroy()
+        self.search_button.destroy()
+        self.tweet_button.destroy()
+        del self._widgets__[self.tweet_button_pos]
+        del self.tweet_button
+        del self._widgets__[self.search_button_pos]
+        del self.search_button
+        del self._widgets__[self.quit_button_pos]
+        del self.quit_button
+
+    def on_tweet(self):
         post = self.tweet.value
-        query = self.search.value
-
-        if len(post) > 140:
+        if len(post) == 0:
+            notify_confirm('You can\'t post an empty tweet')
+        elif len(post) > 140:
             notify_confirm('Your tweet is too long!', title='Error')
-        elif len(post) > 0:
+        else:
             yes = notify_yes_no('Are you sure you want to post:\n' + post, 
                                 title='Post')
             if yes:
                 self.post_tweet(post)
-        elif len(query) > 0:
-            self.search(query)
-        
+
         self.tweet.value = ''
+
+    def on_search(self):
+        query = self.search.value
+        if len(query) > 0:
+            self.search_tweets(query)
         self.search.value = ''
 
-    def on_cancel(self):
-        """Askes the user if he/she really wants to quit when the cancel 
-        button is pressed. Terminates if yes, else continue."""
+    def on_quit(self):
         yes = notify_yes_no('Are you sure you wanna quit?', title='Quit')
         if yes:
             exit()
 
     def post_tweet(self, post):
-        """Posts a tweet.
-           :param post: Your tweet."""
         twittr = tweet.Twitter(auth=tweet.authenicate())
         twittr.statuses.update(status=post)
 
-    def parse_tweet(self, data):
-        """Parses the data to get the interesting data.
-           This is the actual tweet, username, full name, 
-           and the time the tweet was posted.
-           Returns a list thats contains data we are interested in,
-           or None if it got an keyError on any of the lookups."""
-        try:
-            username = '@'+data['user']['screen_name'].encode('utf8', 'replace')
-            full_name = data['user']['name'].encode('utf8', 'replace')
-            tweet_text = data['text'].encode('utf8', 'replace')
-            time = data['created_at'].encode('utf8', 'replace')
-            index = find_break_point(tweet_text, self.max_x)
-            tweet1 = tweet_text[0:index]
-            tweet2 = tweet_text[index:]
-            return [full_name, username, time, tweet1, tweet2]
-        except KeyError:
-            return None
 
     def update_feed(self, data):
         """Updates the feed, new tweets go first, the rest
            gets pushed down. The will at most contain the
            100 newest tweets.
            Returns the updated feed."""
-        twit =  self.parse_tweet(data)
+        twit =  parse_tweet(data, self.max_x)
         feed = self.feed.values
         if twit != None:
-            full_name, username, time, tweet1, tweet2 = twit
-            feed.insert(0, full_name)
-            feed.insert(1, username + ' ' + time)
-            feed.insert(2, tweet1)
-            if tweet2 != '':
-                feed.insert(3, tweet2)
-                feed.insert(4, '')
-            else:
-                feed.insert(3, '')
+            for i, text in enumerate(twit):
+                self.feed.values.insert(i,text)
 
         if len(self.feed.values) >= 100:
             feed = feed[0:100]
@@ -132,10 +212,7 @@ class GTweet(ActionForm, SplitForm):
 
     def stream(self):
         """Listens to your feed, and updates it whenever
-           someone posts a new tweet.
-           Note, if you for some reason exits with ctrl-c, the
-           twitterstream will still be running. So use the cancel button 
-           to exit."""
+           someone posts a new tweet."""
         twittr_stream = tweet.TwitterStream(auth=tweet.authenicate(), 
                                             domain='userstream.twitter.com')       
         tweets = twittr_stream.user()
@@ -143,14 +220,37 @@ class GTweet(ActionForm, SplitForm):
         for data in tweets:
             self.feed.values = self.update_feed(data)
 
-    def search(self, query):
+    def search_tweets(self, query):
         """Searches for tweets and adds them to the feed
            :param query: what you are searching for."""
         twittr = tweet.Twitter(auth=tweet.authenicate())
         tweets = twittr.search.tweets(q=query)
         tweets = reversed(tweets['statuses'])
         for data in tweets:
-            self.feed.vaules = self.update_feed(data)            
+            self.feed.vaules = self.update_feed(data)   
+    
+    # Like edit, this function is supposed to override move_ok_button
+    # from ActionForm. The code is more or less stolen from ActionForm, but
+    # made some changes so it moves all 3 buttons
+    def move_buttons(self):
+        if hasattr(self, 'quit_button'):
+            cmy, cmx = self.curses_pad.getmaxyx()
+            cmy -= self.QUIT_BUTTON_BR_OFFSET[0]
+            cmx -= len(self.QUIT_BUTTON_TEXT)+self.QUIT_BUTTON_BR_OFFSET[1]
+            self.quit_button.rely = cmy
+            self.quit_button.relx = cmx 
+            
+            cmy, cmx = self.curses_pad.getmaxyx()
+            cmy -= self.SEARCH_BUTTON_BR_OFFSET[0]
+            cmx -= len(self.SEARCH_BUTTON_TEXT)+self.SEARCH_BUTTON_BR_OFFSET[1]
+            self.search_button.rely = cmy
+            self.search_button.relx = cmx             
+            
+            cmy, cmx = self.curses_pad.getmaxyx()   
+            cmy -= self.TWEET_BUTTON_BR_OFFSET[0]
+            cmx -= len(self.TWEET_BUTTON_TEXT)+self.TWEET_BUTTON_BR_OFFSET[1]
+            self.tweet_button.rely = cmy
+            self.tweet_button.relx = cmx 
 
 
 class TwitterClient(NPSAppManaged):
@@ -159,11 +259,11 @@ class TwitterClient(NPSAppManaged):
        and see your feed."""
     
     def onStart(self):
-        self.addForm('MAIN', GTweet, name='GjertsenTweet')
+        self.addForm('MAIN', TweetForm, name='GjertsenTweet')
 
 
 def main():
-    tweet.authenicate()
+    #tweet.authenicate()
     TwitterClient().run()
 
 
