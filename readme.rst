@@ -17,7 +17,7 @@ http://www.lfd.uci.edu/~gohlke/pythonlibs/ if you already havent done it
 
 Build from source
 -----------------
-pip install -r requirements
+pip install -r requirements.txt
 python client.py
 
 Usage
