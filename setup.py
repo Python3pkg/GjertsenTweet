@@ -35,13 +35,15 @@ for windows from here http://www.lfd.uci.edu/~gohlke/pythonlibs/ if you haven't
 already done it  
 """
 
+__author__ = 'Fredrik Gjertsen'
+
 from setuptools import setup
 
 setup(name='GjertsenTweet',
-      version='0.4.1',
-      description='A simple twitter client for the terminal',
+      version='0.4.5',
+      description='A simple twitter client for the command line',
       long_description = __doc__,
-      author='Fredrik Gjertsen',
+      author=__author__,
       author_email='f.gjertsen@gmail.com',
       url='https://github.com/fredgj/GjertsenTweet',
       packages=['GjertsenTweet'],
@@ -70,6 +72,4 @@ setup(name='GjertsenTweet',
                    ],
       keywords='twitter, command-line tools')
 
-
-__author__ = 'Fredrik Gjertsen'
 

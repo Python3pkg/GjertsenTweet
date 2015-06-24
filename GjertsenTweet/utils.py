@@ -20,7 +20,6 @@ import curses
 
 __author__ = 'Fredrik Gjertsen'
 
-
 month_names = ['Jan','Feb','Mar','Apr','May','Jun', 
                'Jul','Aug','Sep','Oct','Nov','Dec']
 
@@ -60,7 +59,7 @@ def find_break_point(string, screen_width):
     for i in range(len(string)):
         if string[i] == ' ':
             last_space = i
-        if i > screen_width-6:
+        if i > screen_width-7:
             return last_space+1
     return screen_width
 
