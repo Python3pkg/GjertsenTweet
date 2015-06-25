@@ -25,26 +25,37 @@ month_names = ['Jan','Feb','Mar','Apr','May','Jun',
 
 months = {month: i+1 for i, month in enumerate(month_names)}
 
+
 def strip_leading_zero(month):
     if month.startswith('0'):
         return int(month[1:])
     return int(month)
 
 
-def format_time(tweet_time):
-    """Formats the time provided by twitter so it looks nice
-       and show the right time"""
+def adjust_time(timestamp):
+    daylight_saving_time = time.localtime(timestamp).tm_isdst
+    if daylight_saving_time:
+        return timestamp - time.altzone
+    return timestamp - time.timezone
+
+
+def make_timestamp(tweet_time, time_format):
     tweet_time = tweet_time.split()
     month = months[tweet_time[1]]
     day = tweet_time[2]
     ttime = tweet_time[3]
     year = tweet_time[5]
     tweet_time = '{} {} {} {}'.format(ttime, month, day, year)
-    time_format = '%H:%M:%S %m %d %Y'
     timestamp = time.mktime(datetime.datetime.strptime(tweet_time, time_format).timetuple())
-    timestamp -= time.altzone
-    tweet_time = datetime.datetime.fromtimestamp(timestamp).strftime(time_format)
-    tweet_time = tweet_time.split()
+    return adjust_time(timestamp)
+
+
+def format_time(tweet_time):
+    """Formats the time provided by twitter so it looks nice
+       and show the right time."""
+    time_format = '%H:%M:%S %m %d %Y'
+    timestamp = make_timestamp(tweet_time, time_format)
+    tweet_time = datetime.datetime.fromtimestamp(timestamp).strftime(time_format).split()
     tweet_time[1] = month_names[strip_leading_zero(tweet_time[1])-1]
     return ' '.join(tweet_time)
 
@@ -53,8 +64,7 @@ def find_break_point(string, screen_width):
     """Finds the best index to split a string, in order
        to make it fit in a terminal. This is because npyscreen
        doesn't add a newline for you, instead it will continue
-       writing the string outside the screen.
-       :param screen_width: the width of the terminal"""
+       writing the string outside the screen."""
     last_space = 0
     for i in range(len(string)):
         if string[i] == ' ':
