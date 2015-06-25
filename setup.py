@@ -40,7 +40,7 @@ __author__ = 'Fredrik Gjertsen'
 from setuptools import setup
 
 setup(name='GjertsenTweet',
-      version='0.4.5',
+      version='0.4.6',
       description='A simple twitter client for the command line',
       long_description = __doc__,
       author=__author__,
