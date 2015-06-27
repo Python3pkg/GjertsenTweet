@@ -15,14 +15,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from threading import Thread
 import weakref
+from threading import Thread
 
 from npyscreen import (ActionForm, SplitForm, TitleText, Pager, NPSAppManaged,
                        notify_confirm, notify_yes_no, ButtonPress)
 
-from utils import find_break_point, format_tweet, parse_tweet
 import tweet
+from utils import parse_tweet
 
 __author__ = 'Fredrik Gjertsen'
 
@@ -171,11 +171,9 @@ class TweetForm(ActionForm, SplitForm):
             notify_confirm('You can\'t post an empty tweet')
         elif len(post) > 140:
             notify_confirm('Your tweet is too long!', title='Error')
-        else:
-            yes = notify_yes_no('Are you sure you want to post:\n' + post, title='Post')
-            if yes:
-                self.post_tweet(post)
-        self.tweet.value = ''
+        elif notify_yes_no('Are you sure you want to post:\n' + post, title='Post'):
+            self.post_tweet(post)
+            self.tweet.value = ''
 
     def on_search(self):
         query = self.search.value
@@ -184,8 +182,7 @@ class TweetForm(ActionForm, SplitForm):
         self.search.value = ''
 
     def on_quit(self):
-        yes = notify_yes_no('Are you sure you wanna quit?', title='Quit')
-        if yes:
+        if notify_yes_no('Are you sure you wanna quit?', title='Quit'):
             exit()
 
     def post_tweet(self, post):

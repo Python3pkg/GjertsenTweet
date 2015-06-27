@@ -14,11 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+__author__ = 'Fredrik Gjertsen'
+
+
 import time
 import datetime
 import curses
 
-__author__ = 'Fredrik Gjertsen'
 
 month_names = ['Jan','Feb','Mar','Apr','May','Jun', 
                'Jul','Aug','Sep','Oct','Nov','Dec']
@@ -33,8 +35,8 @@ def strip_leading_zero(month):
 
 
 def adjust_time(timestamp):
-    daylight_saving_time = time.localtime(timestamp).tm_isdst
-    if daylight_saving_time:
+    # daylight saving time
+    if time.localtime(timestamp).tm_isdst:
         return timestamp - time.altzone
     return timestamp - time.timezone
 
@@ -82,9 +84,10 @@ def format_tweet(string, screen_width):
     index = find_break_point(string, screen_width)
     line1 = string[0:index]
     line2 = string[index:]
-    if line2 == '':
-        return [line1, '']
-    return [line1, line2, '']
+    return [line1, ''] if line2 == '' else [line1, line2, '']
+    # if line2 == '':
+    #    return [line1, '']
+    # return [line1, line2, '']
 
 def parse_tweet(data, screen_width):
     """Parses the data to get the interesting data.
