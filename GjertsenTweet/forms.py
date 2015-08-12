@@ -2,7 +2,7 @@ import weakref
 from threading import Thread
 
 from npyscreen import (ActionForm, SplitForm, TitleText, Pager, notify_confirm, 
-                       notify_yes_no, ButtonPress)
+                       notify_yes_no)
 from twitter import Twitter, TwitterStream
 
 from authentication import authenicate
@@ -48,12 +48,12 @@ class TweetForm(ActionForm, SplitForm):
         thread.daemon = True
         thread.start()
     
-    
+
     # Had to override edit from ActionForm in order to add more buttons.
     # Basically just copied the code from ActionForm, cleaned up the code
     # a bit, added one more button and changed the name and positioning of 
     # the other buttons
-    def edit(self):
+    def edit(self): 
         self._add_buttons()
         tmp_rely, tmp_relx = self.nextrely, self.nextrelx
        
@@ -76,7 +76,7 @@ class TweetForm(ActionForm, SplitForm):
                 return False
         
         edit_return_value = None
-        while self.editing:
+        while self.editing: 
             if not self.ALL_SHOWN: self.on_screen()
             try:
                 self.while_editing(weakref.proxy(self._widgets__[self.editw]))
