@@ -17,11 +17,12 @@ http://www.lfd.uci.edu/~gohlke/pythonlibs/ if you already havent done it
 
 Build from source
 -----------------
+python setup.py install
+
+or:
+
 pip install -r requirements.txt
-
-then run **python setup.py install**
-
-or just run client.py
+and run client.py
 
 Usage
 -----
