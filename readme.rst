@@ -19,7 +19,9 @@ Build from source
 -----------------
 pip install -r requirements.txt
 
-python client.py
+then run **python setup.py install**
+
+or just run client.py
 
 Usage
 -----
