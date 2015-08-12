@@ -1,7 +1,7 @@
 __author__ = 'Fredrik Gjertsen'
-__doc__ = open('readme.rst')
+__doc__ = open('README.rst').read()
 __description__ = 'A simple twitter client for the command line'
-__version__ = '0.4.9'
+__version__ = '0.5.2'
 
 from setuptools import setup
 
