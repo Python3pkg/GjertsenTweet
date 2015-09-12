@@ -71,9 +71,10 @@ class TweetForm(ActionForm, SplitForm):
 
         while not self._widgets__[self.editw].editable:
             self.editw += 1
-            if self.editw > len(self._widgets__)-2: 
-                self.editing = False
-                return False
+            if self.editw <= len(self._widgets__)-2:
+                continue
+            self.editing = False
+            return False
         
         edit_return_value = None
         while self.editing: 
@@ -171,8 +172,8 @@ class TweetForm(ActionForm, SplitForm):
             exit()
 
     def post_tweet(self, post):
-        twittr = Twitter(auth=authenicate())
-        twittr.statuses.update(status=post)
+        twitter = Twitter(auth=authenicate())
+        twitter.statuses.update(status=post)
 
 
     def update_feed(self, data):
@@ -180,21 +181,23 @@ class TweetForm(ActionForm, SplitForm):
            gets pushed down. The will at most contain the
            100 newest tweets.
            Returns the updated feed."""
-        twit =  parse_tweet(data, self.max_x)
+        tweet =  parse_tweet(data, self.max_x)
         feed = self.feed.values
-        if twit: 
-            for i, text in enumerate(twit):
+        
+        if tweet: 
+            for i, text in enumerate(tweet):
                 feed.insert(i,text)
 
         if len(self.feed.values) >= 1000:
             feed = feed[0:1000]
+        
         return feed
 
     def populate(self):
         """Populates the the feed with the last 50 tweets from
            your feed when the client starts."""
-        twittr = Twitter(auth=authenicate())
-        tweets = reversed(twittr.statuses.home_timeline(count=50))
+        twitter = Twitter(auth=authenicate())
+        tweets = reversed(twitter.statuses.home_timeline(count=50))
 
         for data in tweets:
             self.feed.values = self.update_feed(data)
@@ -202,19 +205,19 @@ class TweetForm(ActionForm, SplitForm):
     def stream(self):
         """Listens to your feed, and updates it whenever
            someone posts a new tweet."""
-        twittr_stream = TwitterStream(auth=authenicate(), 
+        twitter_stream = TwitterStream(auth=authenicate(), 
                                       domain='userstream.twitter.com')       
-        #tweets = twittr_stream.user()
 
-        for data in twittr_stream.user():
+        for data in twitter_stream.user():
             self.feed.values = self.update_feed(data)
 
     def search_tweets(self, query):
         """Searches for tweets and adds them to the feed
            :param query: what you are searching for."""
-        twittr = Twitter(auth=authenicate())
-        tweets = twittr.search.tweets(q=query)
+        twitter = Twitter(auth=authenicate())
+        tweets = twitter.search.tweets(q=query)
         tweets = reversed(tweets['statuses'])
+        
         for data in tweets:
             self.feed.vaules = self.update_feed(data)   
     
