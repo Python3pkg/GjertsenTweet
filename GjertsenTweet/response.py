@@ -1,12 +1,13 @@
 import time
 import datetime
 from functools import wraps
+from itertools import chain
 
 import dict_digger
 
 
-month_names = ['Jan','Feb','Mar','Apr','May','Jun', 
-               'Jul','Aug','Sep','Oct','Nov','Dec']
+month_names = ('Jan','Feb','Mar','Apr','May','Jun', 
+               'Jul','Aug','Sep','Oct','Nov','Dec')
 
 months = {month: i+1 for i, month in enumerate(month_names)}
 
@@ -65,12 +66,11 @@ def adjust_time(timestamp):
 def make_timestamp(tweet_time, time_format):
     """Creates a timestamp based on the time attached to a tweet"""
     tweet_time = tweet_time.split()
-    month = months[tweet_time[1]]
-    day = tweet_time[2]
-    ttime = tweet_time[3]
-    year = tweet_time[5]
-    tweet_time = '{} {} {} {}'.format(ttime, month, day, year)
+    _, month, day, tweet_time, _, year = tweet_time
+    month = months[month]
+    tweet_time = '{} {} {} {}'.format(tweet_time, month, day, year)
     timestamp = time.mktime(datetime.datetime.strptime(tweet_time, time_format).timetuple())
+    
     return adjust_time(timestamp)
 
 
@@ -81,6 +81,7 @@ def format_time(tweet_time):
     timestamp = make_timestamp(tweet_time, time_format)
     tweet_time = datetime.datetime.fromtimestamp(timestamp).strftime(time_format).split()
     tweet_time[1] = month_names[strip_leading_zero(tweet_time[1])-1]
+    
     return ' '.join(tweet_time)
 
 
@@ -90,11 +91,13 @@ def find_break_point(string, screen_width):
        doesn't add a newline for you, instead it will continue
        writing the string outside the screen."""
     last_space = 0
+    
     for i in range(len(string)):
         if string[i] == ' ':
             last_space = i
         if i > screen_width-7:
             return last_space+1
+    
     return screen_width
 
 
@@ -106,7 +109,8 @@ def format_tweet(string, screen_width):
     index = find_break_point(string, screen_width)
     line1 = string[0:index]
     line2 = string[index:]
-    return [line1, ''] if line2 == '' else [line1, line2, '']
+    
+    return (line1, line2, '') if line2 else (line1,'')
 
 
 @attribute_safe
@@ -121,9 +125,5 @@ def parse_tweet(data, screen_width):
     tweet_text = format_tweet(response.tweet_text.encode('utf8', 'replace'), screen_width)
     time = format_time(response.created_at)
 
-    parsed_tweet = [full_name, username, time]
-    for text in tweet_text:
-        parsed_tweet.append(text)
-    
-    return parsed_tweet
+    return chain([full_name, username, time], tweet_text)
 
