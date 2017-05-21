@@ -5,8 +5,8 @@ from npyscreen import (ActionForm, SplitForm, TitleText, Pager, notify_confirm,
                        notify_yes_no)
 from twitter import Twitter, TwitterStream
 
-from authentication import authenicate
-from response import parse_tweet
+from .authentication import authenicate
+from .response import parse_tweet
 
 
 class TweetForm(ActionForm, SplitForm):
@@ -25,7 +25,7 @@ class TweetForm(ActionForm, SplitForm):
 
     BUTTONS_TEXT = [QUIT_BUTTON_TEXT, SEARCH_BUTTON_TEXT, TWEET_BUTTON_TEXT]
     BUTTONS_OFFSET = [QUIT_BUTTON_BR_OFFSET, SEARCH_BUTTON_BR_OFFSET, TWEET_BUTTON_BR_OFFSET]
-    BUTTONS_DATA = zip(BUTTONS_TEXT, BUTTONS_OFFSET)
+    BUTTONS_DATA = list(zip(BUTTONS_TEXT, BUTTONS_OFFSET))
 
     def create(self):
         """initiliazes the form, adds the widgets and fires up the feed."""

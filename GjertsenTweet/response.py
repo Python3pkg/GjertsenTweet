@@ -21,7 +21,7 @@ class Response(object):
     def __get__(self, instance, cls):
         try:
             return dict_digger.dig(instance.response, *self.path, fail=True)
-        except KeyError, IndexError:
+        except KeyError as IndexError:
             return None
 
 

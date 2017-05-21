@@ -1,7 +1,7 @@
 from twitter import read_token_file, OAuth, oauth_dance
 import os
 
-from consumer import CONSUMER_KEY, CONSUMER_SECRET
+from .consumer import CONSUMER_KEY, CONSUMER_SECRET
 
 
 def authenicate():

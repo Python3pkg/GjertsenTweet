@@ -2,8 +2,8 @@ import sys
 
 from npyscreen import NPSAppManaged
 
-from authentication import authenicate
-from forms import TweetForm
+from .authentication import authenicate
+from .forms import TweetForm
 
 
 class TwitterClient(NPSAppManaged):
